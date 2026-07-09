@@ -1,0 +1,22 @@
+# Always-on at login for Linux (systemd user service). Copy to
+#   ~/.config/systemd/user/watch-deploys.service
+# fill in the two absolute paths below, then:
+#   systemctl --user enable --now watch-deploys.service
+#
+# Same PATH caveat as macOS: a user service does not load your interactive shell environment,
+# so set ghCliPath / azCliPath to an absolute path in config.json (or extend the PATH below),
+# or the board will just sit empty.
+
+[Unit]
+Description=watch-deploys (local deploy + pipeline dashboard)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/ABSOLUTE/PATH/TO/watch-deploys
+ExecStart=/ABSOLUTE/PATH/TO/node /ABSOLUTE/PATH/TO/watch-deploys/server.js
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
