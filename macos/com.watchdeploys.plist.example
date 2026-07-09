@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Always-on at login for macOS (launchd). Copy to ~/Library/LaunchAgents/com.watchdeploys.plist,
+     fill in the two absolute paths below, then:
+       launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.watchdeploys.plist
+     To stop:
+       launchctl bootout  gui/$(id -u) ~/Library/LaunchAgents/com.watchdeploys.plist
+
+     Two things launchd gets wrong by default because it does NOT load your shell environment:
+       1. It won't find `gh`/`az` on your PATH. Set ghCliPath (or azCliPath) to the absolute
+          path in config.json — e.g. `which gh` -> /usr/local/bin/gh — or the board sits empty.
+          The PATH key below also covers the common locations.
+       2. Point ProgramArguments at node's REAL binary, not a version-manager shim:
+          node -e "console.log(process.execPath)". (An nvm path is version-pinned — update it
+          when you upgrade Node.) -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.watchdeploys</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/ABSOLUTE/PATH/TO/node</string>
+    <string>/ABSOLUTE/PATH/TO/watch-deploys/server.js</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/ABSOLUTE/PATH/TO/watch-deploys</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/watch-deploys.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/watch-deploys.log</string>
+</dict>
+</plist>

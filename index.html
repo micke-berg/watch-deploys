@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>watch-deploys</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+<!-- Dock / home-screen icon (Safari "Add to Dock", iOS). A crisp branded SVG so it doesn't
+     fall back to a generic icon shared with other localhost web apps. -->
+<link rel="apple-touch-icon" href="/icon.svg" />
+<!-- Web app manifest: the icon/identity source Safari "Add to Dock" checks first. Gives this
+     app a distinct name + id so it doesn't inherit another localhost web app's icon. -->
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="Deploys" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#131118" />
+<!-- Resolve the theme before first paint (no flash): stored choice, else the OS. Dark is the
+     no-JS fallback. This stays inline and render-blocking on purpose — moving it to app.js
+     (loaded at end of body) would paint the wrong theme first. applyTheme() in app.js
+     re-affirms this and keeps the meta/favicon/toggle in sync. -->
+<script>
+(function () {
+  try {
+    var p = localStorage.getItem("watchdeploys-theme");
+    var t = (p === "light" || p === "dark") ? p
+      : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div style="min-height:100vh; position:relative; background: var(--bg); padding: clamp(20px,4vw,44px); overflow-x:hidden;">
+  <div style="position:absolute; left:0; right:0; top:0; height:380px; z-index:0; pointer-events:none; background: radial-gradient(900px 380px at 28% -70%, var(--glow), transparent 72%);"></div>
+
+  <div style="position:relative; z-index:1; max-width:1120px; margin:0 auto; display:flex; flex-direction:column; gap:22px;">
+
+    <header style="display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:13px;">
+        <span id="headDot"></span>
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:15px; font-weight:700; letter-spacing:0.30em; text-transform:uppercase; color: var(--title);">Deploy&nbsp;Watch</span>
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:10.5px; letter-spacing:0.20em; color: var(--faint); text-transform:uppercase; padding-left:2px;">read-only</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span id="freshText" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:12px; color: var(--t-mute); letter-spacing:0.06em;"></span>
+        <button id="themeBtn" title="Switch to light mode" aria-label="Switch to light mode" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:15px; color: var(--t-mid); background: var(--btn-bg); border:1px solid var(--btn-border); border-radius:11px; cursor:pointer; box-shadow: var(--btn-shadow);">☀</button>
+        <button id="addBtn" title="Watch a pipeline, environment, or release" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:11.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color: var(--t-soft); background:transparent; border:1px solid var(--btn-border); border-radius:11px; padding:11px 15px; cursor:pointer;">＋ Watch</button>
+        <button id="checkBtn" title="Re-poll the host right now" style="display:flex; align-items:center; gap:8px; font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:11.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color: var(--text); background: var(--btn-bg); border:1px solid var(--btn-border); border-radius:11px; padding:11px 17px; cursor:pointer; box-shadow: var(--btn-shadow);"></button>
+      </div>
+    </header>
+
+    <div id="addBar" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; padding:13px 15px; border:1px solid var(--border); border-radius:14px; background: var(--panel-2);">
+      <span style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color: var(--t-dim);">Watch</span>
+      <select id="addKind" onchange="syncAddFields()" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:13px; color: var(--text); background: var(--bg); border:1px solid var(--input-border); border-radius:9px; padding:9px 12px; outline:none; cursor:pointer;">
+        <option value="pipeline">pipeline</option>
+        <option value="environment">environment</option>
+        <option value="release">release</option>
+      </select>
+      <input id="addRepo" autocomplete="off" placeholder="owner/repo" style="width:220px; max-width:52vw; font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:13px; color: var(--text); background: var(--bg); border:1px solid var(--input-border); border-radius:9px; padding:9px 12px; outline:none;" />
+      <input id="addName" autocomplete="off" placeholder="workflow (e.g. ci.yml)" style="width:190px; font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:13px; color: var(--text); background: var(--bg); border:1px solid var(--input-border); border-radius:9px; padding:9px 12px; outline:none;" />
+      <input id="addBranch" autocomplete="off" placeholder="branch (optional)" style="width:150px; font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:13px; color: var(--text); background: var(--bg); border:1px solid var(--input-border); border-radius:9px; padding:9px 12px; outline:none;" />
+      <button onclick="submitAdd()" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color: var(--chip-text); background: var(--accent); border:none; border-radius:9px; padding:9px 16px; cursor:pointer;">Add</button>
+      <button onclick="toggleAdd(false)" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color: var(--t-quiet); background:transparent; border:1px solid var(--border); border-radius:9px; padding:9px 13px; cursor:pointer;">Cancel</button>
+      <span id="addErr" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:12px; color: oklch(var(--crit));"></span>
+    </div>
+
+    <section id="hero"></section>
+    <main id="cards" style="display:flex; flex-direction:column; gap:12px;"></main>
+
+    <footer style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:12px; padding-top:20px; border-top:1px solid var(--border-faint);">
+      <div style="display:flex; align-items:center; gap:11px;">
+        <span id="footDot"></span>
+        <span id="footLabel" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:11.5px; letter-spacing:0.16em; text-transform:uppercase; color: var(--t-mute);"></span>
+      </div>
+      <span id="footBuilt" style="font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color: var(--fainter);"></span>
+    </footer>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="22%" r="80%">
+      <stop offset="0%" stop-color="#2b2740"/>
+      <stop offset="100%" stop-color="#131118"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- a simple upward rocket, brand-neutral vector so it rasterises crisply at any size -->
+  <g transform="translate(256 262)" fill="none" stroke="#e9e7f2" stroke-width="17" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M0 -128 C 52 -92, 60 -20, 44 44 L -44 44 C -60 -20, -52 -92, 0 -128 Z" fill="#1b1826"/>
+    <circle cx="0" cy="-40" r="26" fill="#131118" stroke="#7aa2ff"/>
+    <path d="M-44 20 C -84 32, -92 70, -86 96 C -56 92, -40 70, -40 44"/>
+    <path d="M44 20 C 84 32, 92 70, 86 96 C 56 92, 40 70, 40 44"/>
+  </g>
+  <!-- exhaust -->
+  <g transform="translate(256 320)" stroke-linecap="round">
+    <path d="M0 0 C 14 34, 14 60, 0 92 C -14 60, -14 34, 0 0 Z" fill="#ff9f43"/>
+    <path d="M0 12 C 8 34, 8 52, 0 72 C -8 52, -8 34, 0 12 Z" fill="#ffd36b"/>
+  </g>
+</svg>
